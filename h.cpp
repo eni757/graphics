@@ -141,13 +141,13 @@ void blit_masked( Surface& aSurface, ImageRGBA const& aImage, Vec2f aPosition )
 				colour_to_screen.b = colour_from_image.b;
 
 			
-				if(bottomCornery + j +0.5f  >= screenHeight || j <=0) {
-					continue;
-				}
+				// if(bottomCornery + j +0.5f  >= screenHeight || j <=0) {
+				// 	continue;
+				// }
 				printf("hello");
 
 				aSurface.set_pixel_srgb(i+0.5f, j+0.5f, colour_to_screen);
-			}
+			} 
 			offset_y += 1;
 
 		}
