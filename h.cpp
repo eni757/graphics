@@ -1,3 +1,20 @@
+#include <draw2d/intersect.hpp>
+
+#include <algorithm>
+
+bool intersect_circle_tri( Vec2f aCircleCenter, float aRadius, Vec2f aP0, Vec2f aP1, Vec2f aP2 ) noexcept
+{
+	
+	//find closest point on each edge to the circle centre
+	float t = 
+
+	
+	
+	return false; // TODO: implement me
+}
+
+
+
 #include <algorithm>
 #include <cstdio>
 
@@ -7,29 +24,50 @@ bool intersect_circle_aabb( Vec2f aCircleCenter, float aRadius, Vec2f aAABBMin, 
 
 	//clamp  so 
 
-	float q_x = std::min(std::max(aCircleCenter.x, aAABBMin.x), aAABBMax.x);
-	float q_y = std::min(std::max(aCircleCenter.y, aAABBMin.y), aAABBMax.y); 
+	
 
-	printf("qx: %f, qy: %f", q_x, q_y);
+	float q_x = std::clamp(aCircleCenter.x, aAABBMin.x, aAABBMax.x);
+	float q_y = std::clamp(aCircleCenter.y, aAABBMin.y, aAABBMax.y);
 
+
+
+	// printf("aAABBMin: %f, %f\n", aAABBMin.x, aAABBMin.y);
+	// printf("aAABBMax: %f, %f\n", aAABBMax.x, aAABBMax.y);
+	
+
+
+	float centre = aCircleCenter.x * aCircleCenter.x + aCircleCenter.y * aCircleCenter.y;
+	centre = pow(centre, 0.5);
+	float q = q_x * q_x + q_y * q_y;
+	q = pow(q, 0.5);
+
+	float d_x = aCircleCenter.x - q_x;
+	float d_y = aCircleCenter.y - q_y;
+
+	float condition = d_x * d_x + d_y * d_y;
+
+//
+	//printf("centre: %f", centre);
+//
 	//float check = fabs(C - Q). pow(check, 2)
 	
-	float condition_x = pow(fabs(aCircleCenter.x - q_x), 2);
-	float condition_y = pow(fabs(aCircleCenter.y - q_y), 2);
+//	float condition = (centre - q) * (centre - q);
 
-	printf("x: %f, y: %f", condition_x, condition_y);
 
-	float rad_squared = pow(aRadius, 2);
+	// printf("q: %f\n", q);
+	 //printf("condition: %f\n", condition);
+
+	float rad_squared = aRadius * aRadius;
 
 	//make into one length?
-	float length = pow(condition_x, 2) + pow(condition_y, 2);
 
-	printf("length before this: %f", length);
-	length = pow(length, 0.5);
+	//printf("radius: %f\n", rad_squared);
 
-	printf("length: %f\nradius: %f\n", length, rad_squared);
-
-	if (length <= rad_squared) {
+	if (condition <= rad_squared) {
+		// printf("radius: %f\n", rad_squared);
+		// printf("condition: %f\n", condition);
+		// printf("circle centre: %f, %f\n", aCircleCenter.x, aCircleCenter.y);
+		// printf("qx: %f, qy: %f\n", q_x, q_y);
 		return true;
 	}
 
@@ -44,70 +82,6 @@ bool intersect_circle_aabb( Vec2f aCircleCenter, float aRadius, Vec2f aAABBMin, 
 
 
 
-
-#include <draw2d/intersect.hpp>
-
-#include <algorithm>
-
-bool intersect_circle_tri( Vec2f aCircleCenter, float aRadius, Vec2f aP0, Vec2f aP1, Vec2f aP2 ) noexcept
-{
-	
-	//want to check if this the any point in the circle is in the triangle. 
-	int minx = aCircleCenter.x  - aRadius;
-	int miny = aCircleCenter.y - aRadius;
-	int maxx = aCircleCenter.x + aRadius;
-	int maxy = aCircleCenter.y + aRadius;
-	Vec2f p0p, p1p, p2p, point;
-	float area_A, area_B, area_C;
-	float area = fabs(aP0.x * aP1.y - aP1.x * aP0.y) / 2;
-	float alpha, beta, gamma, total;
-
-	for (int i = minx; i <= maxx; i++) {
-		
-		for (int j = miny; j <= maxy; j++) {
-
-			point = {float(i), float(j)};
-			//check if point is in the 
-
-			p0p = operator-(aP0, point);
-			p2p = operator-(aP2, point);
-			area_A = fabs(( p0p.x * p2p.y) - (p2p.x * p0p.y)) /2;
-			alpha = area_A / area;
-
-
-				if( alpha <= 1 && alpha >= 0) { 
-				alpha = area_A / area;	
-			 	p1p = operator-(aP1, point);
-				area_B =fabs(( p0p.x * p1p.y) - (p1p.x *p0p.y)) /2;
-				beta = area_B / area;
-
-
-					if (beta <= 1 && beta >= 0) { 
-						area_C = fabs(( p1p.x * p2p.y) - (p2p.x *p1p.y)) /2;
-						gamma = area_C / area;
-
-						if (gamma <= 1 && gamma >= 0) { 
-						//printf("total: %f", total);
-						total = alpha+beta+gamma-1;
-						//for floating point rounding errors. 
-						if (total< 0.000001 ) {
-							//point is in the triangle. 
-
-							return true;
-
-						}
-						}
-
-					}
-			}
-			
-		}
-	}
-
-	
-	
-	return false; // TODO: implement me
-}
 
 
 
@@ -254,6 +228,14 @@ int main( int aArgc, char* aArgv[] ) try
 
 	auto const spaceship = make_spaceship_atlas();
 
+	// float minShip_x = state.player.position.x - spaceship.kRadius;
+	// float maxShip_x = state.player.position.x + spaceship.kRadius;
+	// float minShip_y = state.player.position.y - spaceship.kRadius;
+	// float maxShip_y = state.player.position.y + spaceship.kRadius;
+
+	// Vec2f aabbMin = {minShip_x, minShip_y};
+	// Vec2f aabbMax = {maxShip_x, maxShip_y};
+
 	Exhaust shipExhaust( rng, spaceship.kNozzles );
 
 	// Main loop
@@ -318,10 +300,18 @@ int main( int aArgc, char* aArgv[] ) try
 		asteroids.draw( surface );
 
 		std::span<const AsteroidField::Asteroid> numAsteroids = asteroids.asteroids(); 
+		//std::span<const Vec2f <TriangleFan::vertices> vertices, endvertices = triangles.
+
 
 		for (int i = 0; i < (int)numAsteroids.size(); i++) {
 
-			if (intersect_circle_aabb(numAsteroids[i].pos, spaceship.kRadius, numAsteroids[i].aabbMin, numAsteroids[i].aabbMax )) {
+			//printf("%d", intersect_circle_aabb(state.player.position, spaceship.kRadius, numAsteroids[i].aabbMin, numAsteroids[i].aabbMax));
+
+			
+
+			if (intersect_circle_aabb(offs, spaceship.kRadius, numAsteroids[i].aabbMin, numAsteroids[i].aabbMax )) {
+
+				//if (intersect_circle_tri(offs, spaceship.kRadius, ))
 
 				asteroids.explode(i);
 			}
