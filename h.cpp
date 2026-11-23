@@ -375,7 +375,7 @@ int main( int aArgc, char* aArgv[] ) try
 					if (intersect_circle_tri(offs, spaceship.kRadius, vertices[0], vertices[j], vertices[j+1])) {
 					
 						asteroids.explode(i);
-						break;
+						break; //so we can move onto the next asteroid
 
 					}
 				}
