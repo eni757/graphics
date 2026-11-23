@@ -6,9 +6,59 @@ bool intersect_circle_tri( Vec2f aCircleCenter, float aRadius, Vec2f aP0, Vec2f 
 {
 	
 	//find closest point on each edge to the circle centre
-	float t = 
 
+	//check if triangle is inside cirlce
+	//find closest edge of p0p1
+	//check distance against radius
+	//find closest edge of p1p2
+	//check distance against radius
+	//find closest edge of p0p2
+	//chek distance against radius
+
+	//t = C - O . d / d.d
+
+
+	//the d values (vectors)
+	Vec2f d_P0P1 = {aP0.x - aP1.x, aP0.y - aP1.y};
+	Vec2f d_P1P2 = {aP1.x - aP2.x, aP1.y - aP2.y};
+	Vec2f d_P0P2 = {aP0.x - aP2.x, aP0.y - aP2.y};
+
+	//C - Origin
+	Vec2f p1origin = {aCircleCenter.x - aP1.x, aCircleCenter.y - aP1.y};
+	Vec2f p2origin = {aCircleCenter.x - aP2.x, aCircleCenter.y - aP2.y};
 	
+	//t closest
+	float t_p0p1 =( p1origin.x * d_P0P1.x + p1origin.y * d_P0P1.y) / (d_P0P1.x * d_P0P1.x + d_P0P1.y * d_P0P1.y);
+	float t_p0p2 = (p2origin.x * d_P0P2.x + p2origin.y * d_P0P2.y) / (d_P0P2.x * d_P0P2.x + d_P0P2.y * d_P0P2.y);
+	float t_p1p2 = (p2origin.x * d_P1P2.x + p2origin.y * d_P1P2.y) / (d_P1P2.x * d_P1P2.x + d_P1P2.y * d_P1P2.y);
+
+	//t has to be between 0 and 1 so
+	t_p0p1 = std::clamp(t_p0p1, 0, 1);
+	t_p0p2 = std::clamp(t_p0p2, 0, 1);
+	t_p1p2 = std::clamp(t_p1p2, 0, 1);
+
+	Vec2f q_1 = {aP1.x + t_p0p1*d_P0P1.x, aP1.y + t*d_P0P1.y};
+	Vec2f q_2 = {aP2.x + t_p0p2*d_P0P2.x, aP2.y + t*d_P0P2.y};
+	Vec2f q_3 = {aP2.x + t_p1p2*d_P1P2.x, aP2.y + t*d_P1P2.y};
+
+
+	float distance_x_1 = aCircleCenter.x - q_1.x;
+	float distance_y_1 = aCircleCenter.y - q_1.y;
+	float distance_x_2 = aCircleCenter.x - q_2.x;
+	float distance_y_2 = aCircleCenter.y - q_2.y;
+	float distance_x_3 = aCircleCenter.x - q_3.x;
+	float distance_y_3 = aCircleCenter.y - q_3.y;
+
+	float condition_1 = distance_x_1 * distance_x_1 + distance_y_1 * distance_y_1;
+	float condition_2 = distance_x_2 * distance_x_2 + distance_y_2 * distance_y_2;
+	float condition_3 = distance_x_3 * distance_x_3 + distance_y_3 * distance_y_3;
+
+	float rad_squared = aRadius * aRadius;
+
+	if (condition_1 <= rad_squared || condition_2 <=rad_squared || condition_3 <= rad_squared) {
+		return true;
+	}
+
 	
 	return false; // TODO: implement me
 }
@@ -37,9 +87,9 @@ bool intersect_circle_aabb( Vec2f aCircleCenter, float aRadius, Vec2f aAABBMin, 
 
 
 	float centre = aCircleCenter.x * aCircleCenter.x + aCircleCenter.y * aCircleCenter.y;
-	centre = pow(centre, 0.5);
+//	centre = pow(centre, 0.5);
 	float q = q_x * q_x + q_y * q_y;
-	q = pow(q, 0.5);
+//	q = pow(q, 0.5);
 
 	float d_x = aCircleCenter.x - q_x;
 	float d_y = aCircleCenter.y - q_y;
@@ -299,21 +349,38 @@ int main( int aArgc, char* aArgv[] ) try
 		background.draw( surface );
 		asteroids.draw( surface );
 
-		std::span<const AsteroidField::Asteroid> numAsteroids = asteroids.asteroids(); 
-		//std::span<const Vec2f <TriangleFan::vertices> vertices, endvertices = triangles.
+//		std::span<const AsteroidField::Asteroid> asteriodList = asteroids.asteroids(); 
+		auto asteroidList = asteroids.asteroids();
+		auto asteroidShapes = asteroids.shapes();
 
-
-		for (int i = 0; i < (int)numAsteroids.size(); i++) {
+		for (std::size_t i = 0; i < asteroidList.size(); i++) {
 
 			//printf("%d", intersect_circle_aabb(state.player.position, spaceship.kRadius, numAsteroids[i].aabbMin, numAsteroids[i].aabbMax));
 
+			auto asteroid = asteroidList[i];
+			auto shape = asteroidShapes[i];
 			
 
-			if (intersect_circle_aabb(offs, spaceship.kRadius, numAsteroids[i].aabbMin, numAsteroids[i].aabbMax )) {
+			if (intersect_circle_aabb(offs, spaceship.kRadius, asteroid.aabbMin, asteroid.aabbMax )) {
 
-				//if (intersect_circle_tri(offs, spaceship.kRadius, ))
 
-				asteroids.explode(i);
+				auto vertices = shape.vertices();
+				auto vertex_centre = asteroid.rot * vertices[0] + asteroid.pos;
+
+				for (std::size_t j = 1; j < vertices.size() - 1; j++) {
+
+					auto vertex_1 = asteroid.rot * vertices[j] + asteroid.pos; //like in the aabbs function somewhere
+					auto vertex_2 = asteroid.rot * vertices[j+1] + asteroid.pos;
+
+					if (intersect_circle_tri(offs, spaceship.kRadius, vertices[0], vertices[j], vertices[j+1])) {
+					
+						asteroids.explode(i);
+						break;
+
+					}
+				}
+				
+
 			}
 			
 			
